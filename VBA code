@@ -1,0 +1,68 @@
+Sub MergeExcelFiles()
+    Dim wsMaster As Worksheet
+    Dim wsTemp As Worksheet
+    Dim wbSource As Workbook
+    Dim wsSource As Worksheet
+    Dim FolderPath As String, FileName As String
+    Dim LastRow As Long, LastCol As Long, PasteRow As Long
+    Dim HeaderCopied As Boolean
+    
+    ' Create a new sheet for merged data
+    On Error Resume Next
+    Set wsMaster = ThisWorkbook.Sheets("Merged_Data")
+    If wsMaster Is Nothing Then
+        Set wsMaster = ThisWorkbook.Sheets.Add
+        wsMaster.Name = "Merged_Data"
+    Else
+        wsMaster.Cells.Clear
+    End If
+    On Error GoTo 0
+    
+    PasteRow = 1
+    HeaderCopied = False
+    
+    ' Select folder
+    With Application.FileDialog(msoFileDialogFolderPicker)
+        .Title = "Select Folder Containing Excel Files"
+        If .Show <> -1 Then Exit Sub
+        FolderPath = .SelectedItems(1) & "\"
+    End With
+    
+    Application.ScreenUpdating = False
+    Application.DisplayAlerts = False
+    
+    ' Loop through each file in the folder
+    FileName = Dir(FolderPath & "*.xls*")
+    Do While FileName <> ""
+        Set wbSource = Workbooks.Open(FolderPath & FileName)
+        
+        ' Assuming data is in the first sheet of each file
+        Set wsSource = wbSource.Sheets(1)
+        
+        ' Find last row and column
+        LastRow = wsSource.Cells(wsSource.Rows.Count, 1).End(xlUp).Row
+        LastCol = wsSource.Cells(1, wsSource.Columns.Count).End(xlToLeft).Column
+        
+        ' Copy header only from the first file
+        If Not HeaderCopied Then
+            wsSource.Range(wsSource.Cells(1, 1), wsSource.Cells(1, LastCol)).Copy _
+                wsMaster.Cells(PasteRow, 1)
+            PasteRow = PasteRow + 1
+            HeaderCopied = True
+        End If
+        
+        ' Copy data excluding header
+        wsSource.Range(wsSource.Cells(2, 1), wsSource.Cells(LastRow, LastCol)).Copy _
+            wsMaster.Cells(PasteRow, 1)
+        
+        PasteRow = wsMaster.Cells(wsMaster.Rows.Count, 1).End(xlUp).Row + 1
+        
+        wbSource.Close SaveChanges:=False
+        FileName = Dir
+    Loop
+    
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts = True
+    
+    MsgBox "Data merged successfully into sheet 'Merged_Data'.", vbInformation
+End Sub
