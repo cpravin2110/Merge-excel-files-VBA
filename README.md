@@ -54,3 +54,8 @@ Automating repetitive data collection tasks.
 1.Excel
 
 2.VBA (Visual Basic for Applications)
+
+
+🤝 Connect
+
+If you found this project useful, feel free to ⭐ star the repo and connect with me on [LinkedIn](https://www.linkedin.com/in/iampravinchavan/) 
